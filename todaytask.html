@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Today Task</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef6f9;
+      color: #333;
+    }
+
+    nav {
+      background: linear-gradient(to right, #0f2027, #2c5364);
+      color: white;
+      padding: 1em 2em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .logo {
+      font-weight: bold;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1em;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+    }
+
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      max-width: 900px;
+      margin: auto;
+      padding: 2em;
+    }
+
+    .content h2 {
+      text-align: center;
+      margin-bottom: 1.5em;
+      color: #2c5364;
+    }
+
+    #todayForm {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      justify-content: center;
+      margin-bottom: 2em;
+    }
+
+    #todayForm input[type="text"],
+    #todayForm input[type="datetime-local"] {
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 220px;
+    }
+
+    #todayForm button {
+      background-color: #00bcd4;
+      color: white;
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #todayForm button:hover {
+      background-color: #0097a7;
+    }
+
+    .task-item {
+      background: #fff;
+      padding: 1em;
+      margin: 0.8em 0;
+      border-left: 5px solid #00bcd4;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .task-item small {
+      display: block;
+      margin-top: 5px;
+      color: #555;
+    }
+
+    .no-tasks {
+      text-align: center;
+      font-style: italic;
+      color: #888;
+    }
+
+    @media (max-width: 600px) {
+      #todayForm {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #todayForm input,
+      #todayForm button {
+        width: 100%;
+      }
+
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      nav ul {
+        flex-direction: column;
+        gap: 0.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">📝 To-Do Dashboard</div>
+    <ul>
+      <li><a href="home.html">🏠 Home</a></li>
+      <li><a href="dailyroutine.html">📅 Daily Routine</a></li>
+      <li><a href="yesterdaytask.html">📋 Yesterday Task</a></li>
+      <li><a href="profile.html">👤 Profile</a></li>
+    </ul>
+  </nav>
+
+  <div class="content">
+    <h2>✅ Tasks for Today</h2>
+
+    <form id="todayForm">
+      <input type="text" id="taskName" placeholder="Enter task name" required />
+      <input type="datetime-local" id="taskDeadline" required />
+      <button type="submit">➕ Add Task</button>
+    </form>
+
+    <div id="todayList">🔄 Loading...</div>
+  </div>
+
+  <script>
+    const todayForm = document.getElementById("todayForm");
+    const todayList = document.getElementById("todayList");
+    let todayTasks = JSON.parse(localStorage.getItem("tasks_todaytask")) || [];
+
+    function renderToday() {
+      todayList.innerHTML = "";
+      const todayStr = new Date().toISOString().split("T")[0];
+      const filtered = todayTasks.filter(task => {
+        const d = new Date(task.deadline);
+        return d.toISOString().split("T")[0] === todayStr;
+      });
+
+      if (filtered.length === 0) {
+        todayList.innerHTML = `<p class="no-tasks">🎉 No tasks scheduled for today.</p>`;
+        return;
+      }
+
+      filtered.forEach(task => {
+        const div = document.createElement("div");
+        div.className = "task-item";
+        div.innerHTML = `<strong>${task.name || task.title}</strong><small>⏰ ${task.deadline}</small>`;
+        todayList.appendChild(div);
+      });
+    }
+
+    todayForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const name = document.getElementById("taskName").value;
+      const deadline = document.getElementById("taskDeadline").value;
+      todayTasks.push({ name, deadline });
+      localStorage.setItem("tasks_todaytask", JSON.stringify(todayTasks));
+      todayForm.reset();
+      renderToday();
+    });
+
+    renderToday();
+  </script>
+</body>
+</html>

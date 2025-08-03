@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" value="width=device-width"initial-scale="1">
+  <title>Daily Routine</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <div class="logo">📝 To-Do Dashboard</div>
+    <ul>
+      <li><a href="home.html">🏠 Home</a></li>
+      <li><a href="todaytask.html">✅ Today Task</a></li>
+      <li><a href="yesterdaytask.html">📋 Yesterday Task</a></li>
+      <li><a href="profile.html">👤 Profile</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="content">
+    <h1>📅 Here Is Your Daily Routine</h1>
+
+    <form id="routineForm">
+      <input type="time" id="timeInput" required>
+      <input type="text" id="taskInput" placeholder="Enter task (e.g., Morning Walk)" required>
+      <button type="submit">➕ Add Routine</button>
+    </form>
+
+    <div id="routineList"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

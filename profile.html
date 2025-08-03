@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile</title>
+  <style>
+    /* Reset and Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Navigation Bar */
+    nav {
+      background: linear-gradient(to right, #185a9d, #43cea2);
+      color: #fff;
+      padding: 1em 2em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .logo {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.2em;
+    }
+
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    /* Content Area */
+    .content {
+      padding: 2em;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .content h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      color: #333;
+    }
+
+    .task-box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .task-box h3 {
+      color: #185a9d;
+      margin-bottom: 10px;
+      margin-top: 20px;
+    }
+
+    .task-box ul {
+      padding-left: 20px;
+    }
+
+    .task-box li {
+      padding: 4px 0;
+    }
+
+    .no-tasks {
+      text-align: center;
+      color: #555;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      nav ul {
+        flex-direction: column;
+        gap: 0.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">📝 To-Do Dashboard</div>
+    <ul>
+      <li><a href="home.html">🏠 Home</a></li>
+      <li><a href="dailyroutine.html">📅 Daily Routine</a></li>
+      <li><a href="todaytask.html">✅ Today Task</a></li>
+      <li><a href="yesterdaytask.html">📋 Yesterday Task</a></li>
+    </ul>
+  </nav>
+
+  <div class="content">
+    <h1>👤 Task Overview</h1>
+    <div class="task-box" id="profileSummary">🔄 Loading...</div>
+  </div>
+
+  <script>
+    const sources = ["home", "dailyroutine", "todaytask", "study", "personal", "important", "workout", "office"];
+    const profileBox = document.getElementById("profileSummary");
+
+    function parseDeadline(deadlineStr) {
+      if (!deadlineStr) return null;
+      if (deadlineStr.includes("/")) {
+        const [datePart, timePart] = deadlineStr.split(",");
+        const [d, m, y] = datePart.trim().split("/").map(Number);
+        return new Date(`${y}-${m}-${d}T${(timePart || "00:00").trim()}`);
+      }
+      return new Date(deadlineStr);
+    }
+
+    let html = "";
+    sources.forEach(source => {
+      const tasks = JSON.parse(localStorage.getItem(`tasks_${source}`) || "[]");
+      const upcoming = tasks.filter(task => {
+        const date = parseDeadline(task.deadline);
+        return date && date >= new Date();
+      });
+
+      if (upcoming.length > 0) {
+        html += `<h3>${source.toUpperCase()} (${upcoming.length})</h3><ul>`;
+        upcoming.forEach(task => {
+          html += `<li>📝 ${task.title || task.name} — ⏰ ${task.deadline}</li>`;
+        });
+        html += `</ul>`;
+      }
+    });
+
+    profileBox.innerHTML = html || "<p class='no-tasks'>✅ No upcoming tasks.</p>";
+  </script>
+</body>
+</html>

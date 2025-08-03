@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>To-Do Dashboard</title>
+  <link rel="icon" href="favicon.ico" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      display: flex;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      height: 100vh;
+    }
+    nav {
+      width: 220px;
+      background-color: #1e293b;
+      color: white;
+      padding: 20px;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    nav ul li {
+      margin-bottom: 15px;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+    }
+    .custom-menu {
+      margin-top: 30px;
+    }
+    main {
+      flex: 1;
+      padding: 30px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .task-form, .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .task-form input, .task-form select, .filters input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .task-form button, .filters button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 5px;
+      background-color: #3b82f6;
+      color: white;
+      cursor: pointer;
+    }
+    #taskList .task-item {
+      background-color: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 6px solid #3b82f6;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .task-item.completed {
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+    .task-item button {
+      margin-top: 10px;
+      background-color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <nav>
+    <div class="logo">📝 To-Do List</div>
+    <ul>
+      <li><a href="dailyroutine.html">📅 Daily Routine</a></li> 
+      <li><a href="todaytask.html">✅ Today Task</a></li>
+      <li><a href="yesterdaytask.html">📋 Yesterday Task</a></li>
+      <li><a href="profile.html">👤 Profile</a></li>   
+    </ul>
+    <div class="custom-menu">
+      <h3>Categories</h3>
+      <ul id="categoryList">
+        <li><a href="studey.html" onclick="filterByCategory('Study')">📘 Study</a></li>
+        <li><a href="personal.html" onclick="filterByCategory('Personal')">🧍 Personal</a></li>
+        <li><a href="workout.html" onclick="filterByCategory('WorkOut')">💼 Work</a></li>
+        <li><a href="important.html" onclick="filterByCategory('Important')">⭐ Important</a></li> 
+        <li><a href="Office.html" onclick="filterByCategory('Office')">🏢 Office</a></li> 
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <h1>🗓️ Your Tasks</h1>
+
+    <!-- Task Input -->
+    <div class="task-form">
+      <input type="text" id="taskName" placeholder="Task name" />
+      <input type="datetime-local" id="taskDeadline" />
+      <select id="taskCategory">
+        <option value="Study">Study</option>
+        <option value="Personal">Personal</option>
+        <option value="Work">Work</option>
+        <option value="Important">Important</option>
+        <option value="Office">Office</option>
+        <option value="Daily Routine">Daily Routine</option>
+
+
+      </select>
+      <button onclick="addTask()">➕ Add Task</button>
+    </div>
+
+    <!-- Time Filter -->
+    <div class="filters">
+      <label>Filter by Time:</label>
+      <input type="datetime-local" id="filterFrom" />
+      <input type="datetime-local" id="filterTo" />
+      <button onclick="filterByTime()">🔍 Filter</button>
+      <button onclick="resetFilter()">🔄 Reset</button>
+    </div>
+
+    <!-- Task Display -->
+    <div id="taskList"></div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    const STORAGE_KEY = "storedTasks";
+
+    function getTasks() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function renderTasks(tasks = getTasks()) {
+      const taskList = document.getElementById("taskList");
+      taskList.innerHTML = "";
+
+      const now = new Date().toISOString();
+
+      tasks.forEach((task, index) => {
+        if (task.category !== "Daily Routine" && task.deadline < now && !task.completed) return;
+
+        const taskDiv = document.createElement("div");
+        taskDiv.className = "task-item";
+        if (task.completed) taskDiv.classList.add("completed");
+        taskDiv.innerHTML = `
+          <input type="checkbox" onchange="toggleComplete(${index})" ${task.completed ? "checked" : ""} />
+          <h3>${task.name}</h3>
+          <p>⏰ ${new Date(task.deadline).toLocaleString()}</p>
+          <p>📁 ${task.category}</p>
+          ${task.category !== "Daily Routine" ? `<button onclick="deleteTask(${index})">🗑️ Delete</button>` : ""}
+        `;
+        taskList.appendChild(taskDiv);
+      });
+    }
+
+    function addTask() {
+      const name = document.getElementById("taskName").value.trim();
+      const deadline = document.getElementById("taskDeadline").value;
+      const category = document.getElementById("taskCategory").value;
+
+      if (!name || !deadline || !category) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      const tasks = getTasks();
+      tasks.push({ name, deadline, category, completed: false });
+      saveTasks(tasks);
+      renderTasks();
+
+      document.getElementById("taskName").value = "";
+      document.getElementById("taskDeadline").value = "";
+    }
+
+    function deleteTask(index) {
+      const tasks = getTasks();
+      tasks.splice(index, 1);
+      saveTasks(tasks);
+      renderTasks();
+    }
+
+    function toggleComplete(index) {
+      const tasks = getTasks();
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks(tasks);
+      renderTasks();
+    }
+
+    function filterByCategory(category) {
+      const tasks = getTasks().filter(task => task.category === category);
+      renderTasks(tasks);
+    }
+
+    function filterByTime() {
+      const from = document.getElementById("filterFrom").value;
+      const to = document.getElementById("filterTo").value;
+      if (!from || !to) return;
+
+      const tasks = getTasks().filter(task => task.deadline >= from && task.deadline <= to);
+      renderTasks(tasks);
+    }
+
+    function resetFilter() {
+      document.getElementById("filterFrom").value = "";
+      document.getElementById("filterTo").value = "";
+      renderTasks();
+    }
+
+    document.addEventListener("DOMContentLoaded", renderTasks);
+  </script>
+</body>
+</html>

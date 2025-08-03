@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧍 Personal To-Do Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f8ff;
+    }
+    h1 {
+      text-align: center;
+    }
+    .task-form, .filters {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+    }
+    .task-item {
+      background: #fff;
+      border-left: 5px solid #0073e6;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .task-item.completed {
+      background: #d1f0ff;
+      border-left-color: #009900;
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧍 Personal To-Do Manager</h1>
+
+  <div class="task-form">
+    <input type="text" id="task-name" placeholder="Personal Task Name" />
+    <input type="datetime-local" id="task-deadline" />
+    <button onclick="addTask()">➕ Add Task</button>
+  </div>
+
+  <div class="filters">
+    <label>Filter From:</label>
+    <input type="datetime-local" id="filterFrom" />
+    <label>To:</label>
+    <input type="datetime-local" id="filterTo" />
+    <button onclick="filterByTime()">🔍 Filter</button>
+    <button onclick="resetFilter()">♻️ Reset</button>
+  </div>
+
+  <div id="taskList"></div>
+
+  <script>
+    const STORAGE_KEY = "tasks_personal";
+    const YESTERDAY_KEY = "tasks_yesterday_personal";
+
+    function getTasks() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function addTask() {
+      const name = document.getElementById("task-name").value.trim();
+      const deadline = document.getElementById("task-deadline").value;
+
+      if (!name || !deadline) {
+        alert("Please enter both name and deadline.");
+        return;
+      }
+
+      const tasks = getTasks();
+      tasks.push({ name, deadline, category: "Personal", completed: false });
+      saveTasks(tasks);
+      renderTasks();
+      document.getElementById("task-name").value = "";
+      document.getElementById("task-deadline").value = "";
+    }
+
+    function renderTasks(tasks = getTasks()) {
+      const taskList = document.getElementById("taskList");
+      taskList.innerHTML = "";
+      const now = new Date().toISOString();
+
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yDate = yesterday.toISOString().split("T")[0];
+
+      const completedYesterday = [];
+      const missedYesterday = [];
+
+      tasks.forEach((task, index) => {
+        const taskDate = task.deadline.split("T")[0];
+        const isYesterday = taskDate === yDate;
+
+        if (isYesterday && task.completed) completedYesterday.push(task);
+        else if (isYesterday && !task.completed) missedYesterday.push(task);
+
+        if (new Date(task.deadline) < new Date() && !task.completed) return;
+
+        const taskDiv = document.createElement("div");
+        taskDiv.className = "task-item";
+        if (task.completed) taskDiv.classList.add("completed");
+
+        taskDiv.innerHTML = `
+          <input type="checkbox" onchange="toggleComplete(${index})" ${task.completed ? "checked" : ""} />
+          <h3>${task.name}</h3>
+          <p>⏰ ${new Date(task.deadline).toLocaleString()}</p>
+          ${task.completed || task.category !== "Daily Routine"
+            ? `<button onclick="deleteTask(${index})">🗑️ Delete</button>` : ""}
+        `;
+
+        taskList.appendChild(taskDiv);
+      });
+
+      const yesterdayData = {
+        completed: completedYesterday,
+        missed: missedYesterday,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(YESTERDAY_KEY, JSON.stringify(yesterdayData));
+    }
+
+    function toggleComplete(index) {
+      const tasks = getTasks();
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks(tasks);
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      const tasks = getTasks();
+      if (tasks[index].category === "Daily Routine" && !tasks[index].completed) return;
+      tasks.splice(index, 1);
+      saveTasks(tasks);
+      renderTasks();
+    }
+
+    function filterByTime() {
+      const from = document.getElementById("filterFrom").value;
+      const to = document.getElementById("filterTo").value;
+      if (!from || !to) return;
+
+      const filtered = getTasks().filter(task => task.deadline >= from && task.deadline <= to);
+      renderTasks(filtered);
+    }
+
+    function resetFilter() {
+      document.getElementById("filterFrom").value = "";
+      document.getElementById("filterTo").value = "";
+      renderTasks();
+    }
+
+    document.addEventListener("DOMContentLoaded", renderTasks);
+  </script>
+
+</body>
+</html>

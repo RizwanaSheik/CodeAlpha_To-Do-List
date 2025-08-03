@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yesterday Task</title>
+  <style>
+    /* Reset & Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff8f0;
+      color: #333;
+    }
+
+    /* Navigation */
+    nav {
+      background: linear-gradient(to right, #8e44ad, #c0392b);
+      color: white;
+      padding: 1em 2em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .logo {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1em;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    /* Content */
+    .content {
+      padding: 2em;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .content h2 {
+      text-align: center;
+      margin-bottom: 1em;
+      font-size: 1.6em;
+    }
+
+    .task-item {
+      background-color: #fff;
+      margin: 1em 0;
+      padding: 1em;
+      border-left: 5px solid #f44336;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .task-item.complete {
+      border-left-color: #4CAF50;
+    }
+
+    .task-item strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1.1em;
+    }
+
+    .task-item small {
+      color: #555;
+    }
+
+    #yesterdayList {
+      margin-top: 20px;
+    }
+
+    .no-tasks {
+      text-align: center;
+      color: #777;
+      font-style: italic;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      nav ul {
+        flex-direction: column;
+        gap: 0.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">📝 To-Do Dashboard</div>
+    <ul>
+      <li><a href="home.html">🏠 Home</a></li>
+      <li><a href="dailyroutine.html">📅 Daily Routine</a></li>
+      <li><a href="todaytask.html">✅ Today Task</a></li>
+      <li><a href="profile.html">👤 Profile</a></li>
+    </ul>
+  </nav>
+
+  <div class="content">
+    <h2>📋 Yesterday & Missed Tasks (Last 2 Days)</h2>
+    <div id="yesterdayList">🔄 Loading...</div>
+  </div>
+
+  <script>
+    const yesterdayList = document.getElementById("yesterdayList");
+    const sources = ["home", "dailyroutine", "todaytask", "study", "personal", "important", "workout", "office"];
+
+    function parseDeadline(deadlineStr) {
+      if (!deadlineStr) return null;
+      if (deadlineStr.includes("/")) {
+        const [datePart, timePart] = deadlineStr.split(",");
+        const [d, m, y] = datePart.trim().split("/").map(Number);
+        return new Date(`${y}-${m}-${d}T${(timePart || "00:00").trim()}`);
+      }
+      return new Date(deadlineStr);
+    }
+
+    const today = new Date();
+    const cutoff = new Date(today);
+    cutoff.setDate(today.getDate() - 2); // up to 2 days ago
+
+    let html = "";
+    sources.forEach(source => {
+      const tasks = JSON.parse(localStorage.getItem(`tasks_${source}`) || "[]");
+
+      tasks.forEach(task => {
+        const date = parseDeadline(task.deadline);
+        if (!date) return;
+
+        if (date < today && date >= cutoff) {
+          html += `
+            <div class="task-item ${task.completed ? 'complete' : ''}">
+              <strong>${task.title || task.name}</strong>
+              <small>⏰ ${task.deadline} - ${task.completed ? "✅ Completed" : "❌ Missed"}</small>
+            </div>`;
+        }
+      });
+    });
+
+    yesterdayList.innerHTML = html || "<p class='no-tasks'>🎉 No missed or past-due tasks in the last 2 days.</p>";
+  </script>
+</body>
+</html>
